@@ -1,0 +1,646 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Assignemnt 4 Part 2: Transient Circuit Simulation</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-05"><meta name="DC.source" content="assignment4part2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Assignemnt 4 Part 2: Transient Circuit Simulation</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Part 2: Time Domain MNA Techniques</a></li><li><a href="#2">Parameters</a></li><li><a href="#3">Constructing the C, G, and F matrices</a></li><li><a href="#4">MATLAB simulation</a></li><li><a href="#5">1. Unit Step Simulation</a></li><li><a href="#6">2. Sine Function</a></li><li><a href="#7">3. Gaussian Function</a></li><li><a href="#8">4. Sine Function (Small and Large Time Steps)</a></li><li><a href="#9">5. Conclusion</a></li></ul></div><h2 id="1">Part 2: Time Domain MNA Techniques</h2><pre class="codeinput"><span class="comment">% a) This is a low pass filter. It remains a linear circuit.</span>
+<span class="comment">% B) We would expect low frequency signals to be transmitted with a gain,</span>
+<span class="comment">% and higher freqeuncy signals to be attenuated.</span>
+</pre><h2 id="2">Parameters</h2><pre class="codeinput">clc
+G1=1/1;
+C2=0.25;
+G2=0.5;
+L=0.2;
+G3=0.1;
+G4=100;
+G5=1/1000;
+ALPHA=100;
+Vin=10;
+vx=-10;
+</pre><h2 id="3">Constructing the C, G, and F matrices</h2><pre class="codeinput"><span class="comment">%X=[V1 Iin V2 V3 V4 V5 IL I4]</span>
+G=[-G1,1, G1, 0,0,0,0,0; <span class="keyword">...</span>
+    G1,0, -G1-G2,0,0,0,-1,0;<span class="keyword">...</span>
+    0,0,0,-G3,0,0,1,0;<span class="keyword">...</span>
+    0,0,1,-1,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,G4,-ALPHA*G4,1;<span class="keyword">...</span>
+    0,0,0,0,0,-G4-G5,ALPHA*G4,0;<span class="keyword">...</span>
+    1,0,0,0,0,0,0,0;
+    0,0,0,0,1,0,-ALPHA,0];
+
+C = [-C2,0,C2,0,0,0,0,0;<span class="keyword">...</span>
+    C2,0,-C2,0,0,0,0,0;<span class="keyword">...</span><span class="comment">.</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,-L,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0];
+</pre><h2 id="4">MATLAB simulation</h2><pre class="codeinput"><span class="comment">%time step</span>
+deltaT=0.001;
+
+A=C/(deltaT)+G;
+</pre><h2 id="5">1. Unit Step Simulation</h2><pre class="codeinput"> Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+
+
+<span class="keyword">for</span> t=0:deltaT:1
+    <span class="keyword">if</span>(t&gt;0.03)
+        F=[0 0 0 0 0 0 1 0];
+    <span class="keyword">else</span>
+        F=[0 0 0 0 0 0 0 0];
+    <span class="keyword">end</span>
+
+    time(count)=t;
+    Vj=inv(A)*(C*Vjm/deltaT + F');
+    voutval(count)=Vj(6);
+    vinval2(count)=Vj(1);
+    Vjm=Vj;
+    count=count+1;
+<span class="keyword">end</span>
+
+figure(1)
+subplot(2,1,2)
+plot(time,voutval)
+title(<span class="string">'Unit Step: Vout over Time'</span>)
+grid <span class="string">on</span>
+
+subplot(2,1,1)
+plot(time,vinval2)
+title(<span class="string">'Unit Step: Vin over Time'</span>)
+grid <span class="string">on</span>
+
+<span class="comment">%Vout Frequency plots</span>
+
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+figure(2)
+plot(fshift,powershift)
+title(<span class="string">'Vout: Unit Step F Spectrum'</span>)
+
+
+<span class="comment">%Vin</span>
+
+fvin=fft(vinval2);
+n=length(vinval2);
+
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+figure(3)
+plot(fshift,powershift)
+title(<span class="string">'Vin: Unit Step F Spectrum'</span>)
+</pre><img vspace="5" hspace="5" src="assignment4part2_01.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_02.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_03.png" alt=""> <h2 id="6">2. Sine Function</h2><pre class="codeinput">vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+
+
+     <span class="keyword">for</span> t=0:deltaT:1
+
+         time(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutval(count)=Vj(6);
+         vinval2(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+
+
+     <span class="keyword">end</span>
+
+     figure(4)
+     subplot(2,1,2)
+     plot(time,voutval)
+     title(<span class="string">'Sine Function: Vout over Time'</span>)
+     grid <span class="string">on</span>
+
+     subplot(2,1,1)
+     plot(time,vinval2)
+     title(<span class="string">'Sine Function: Vin over Time'</span>)
+     grid <span class="string">on</span>
+
+<span class="comment">%Vout Frequency plots</span>
+
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2 /n;     <span class="comment">% zero-centered power</span>
+
+figure(5)
+plot(fshift,powershift)
+title(<span class="string">'Vout: Sine F Spectrum'</span>)
+
+<span class="comment">%Vin</span>
+
+fvin=fft(vinval2);
+n=length(vinval2);
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+figure(6)
+plot(fshift,powershift)
+title(<span class="string">'Vin: Sine F Spectrum'</span>)
+</pre><img vspace="5" hspace="5" src="assignment4part2_04.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_05.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_06.png" alt=""> <h2 id="7">3. Gaussian Function</h2><pre class="codeinput">     vx=@(t) exp(-(1/2)*((t-0.06)/(0.03))^2);
+     Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+     voutval=zeros(1000,1);
+     vinval2=zeros(1000,1);
+     count=1;
+     time=zeros(1000,1);
+
+
+     <span class="keyword">for</span> t=0:deltaT:1
+
+         time(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutval(count)=Vj(6);
+         vinval2(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+
+
+     <span class="keyword">end</span>
+
+     figure(7)
+
+     subplot(2,1,2)
+     plot(time,voutval)
+     title(<span class="string">'Guassian Function: Vout over Time'</span>)
+     grid <span class="string">on</span>
+
+     subplot(2,1,1)
+     plot(time,vinval2)
+     title(<span class="string">'Gaussian Function: Vin over Time'</span>)
+     grid <span class="string">on</span>
+
+<span class="comment">%Vout Frequency plots</span>
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+ fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+ powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+ figure(8)
+plot(fshift,powershift)
+title(<span class="string">'Vout: Gaussian F Spectrum'</span>)
+
+
+<span class="comment">%Vin</span>
+
+fvin=fft(vinval2);
+n=length(vinval2);
+t=(0:n-1)*(fs/n);
+power = abs(fvin).^2 / n;
+ Y=fftshift(fvin);
+ fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+ powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+ figure(9)
+plot(fshift,powershift)
+title(<span class="string">'Vin: Gaussian F Spectrum'</span>)
+</pre><img vspace="5" hspace="5" src="assignment4part2_07.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_08.png" alt=""> <img vspace="5" hspace="5" src="assignment4part2_09.png" alt=""> <h2 id="8">4. Sine Function (Small and Large Time Steps)</h2><pre class="codeinput"><span class="comment">% smaller time step first</span>
+deltaT=0.001;
+
+A=C/(deltaT)+G;
+vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutvalsmall=zeros(1000,1);
+vinval2small=zeros(1000,1);
+count=1;
+timesmall=zeros(1000,1);
+
+
+     <span class="keyword">for</span> t=0:deltaT:1
+
+         timesmall(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutvalsmall(count)=Vj(6);
+         vinval2small(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+
+
+     <span class="keyword">end</span>
+
+<span class="comment">% larger time step</span>
+
+deltaT=0.01;
+
+A=C/(deltaT)+G;
+
+vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutvallarge=zeros(100,1);
+vinval2large=zeros(100,1);
+count=1;
+timelarge=zeros(100,1);
+
+
+     <span class="keyword">for</span> t=0:deltaT:1
+
+         timelarge(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutvallarge(count)=Vj(6);
+         vinval2large(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+
+
+     <span class="keyword">end</span>
+  figure(10)
+     subplot(2,1,2)
+     plot(timesmall,voutvalsmall)
+     title(<span class="string">'Sine Function: Vout over Small Time'</span>)
+     grid <span class="string">on</span>
+
+     subplot(2,1,1)
+     plot(timelarge,voutvallarge)
+     title(<span class="string">'Sine Function: Vin over Large Time'</span>)
+     grid <span class="string">on</span>
+</pre><img vspace="5" hspace="5" src="assignment4part2_10.png" alt=""> <h2 id="9">5. Conclusion</h2><p>The time domain response of the circuit was observed in this module of the report. It can be observed in part 4 that the larger the time step the more distorted the output waveform appears. Therefore a smaller time step should be used for this analysis.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Assignemnt 4 Part 2: Transient Circuit Simulation
+%% Part 2: Time Domain MNA Techniques
+
+% a) This is a low pass filter. It remains a linear circuit. 
+% B) We would expect low frequency signals to be transmitted with a gain,
+% and higher freqeuncy signals to be attenuated.
+
+%% Parameters
+clc
+G1=1/1;
+C2=0.25;
+G2=0.5;
+L=0.2;
+G3=0.1;
+G4=100;
+G5=1/1000;
+ALPHA=100;
+Vin=10;
+vx=-10;
+
+%% Constructing the C, G, and F matrices
+
+%X=[V1 Iin V2 V3 V4 V5 IL I4]
+G=[-G1,1, G1, 0,0,0,0,0; ...
+    G1,0, -G1-G2,0,0,0,-1,0;...
+    0,0,0,-G3,0,0,1,0;...
+    0,0,1,-1,0,0,0,0;...
+    0,0,0,0,0,G4,-ALPHA*G4,1;...
+    0,0,0,0,0,-G4-G5,ALPHA*G4,0;...
+    1,0,0,0,0,0,0,0;
+    0,0,0,0,1,0,-ALPHA,0];
+
+C = [-C2,0,C2,0,0,0,0,0;...
+    C2,0,-C2,0,0,0,0,0;....
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,-L,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0];
+
+%% MATLAB simulation 
+
+%time step
+deltaT=0.001;
+
+A=C/(deltaT)+G;
+
+%% 1. Unit Step Simulation
+ Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+
+
+for t=0:deltaT:1
+    if(t>0.03)
+        F=[0 0 0 0 0 0 1 0];
+    else
+        F=[0 0 0 0 0 0 0 0];
+    end
+    
+    time(count)=t;
+    Vj=inv(A)*(C*Vjm/deltaT + F');
+    voutval(count)=Vj(6);
+    vinval2(count)=Vj(1);
+    Vjm=Vj;
+    count=count+1; 
+end
+
+figure(1)
+subplot(2,1,2)
+plot(time,voutval)
+title('Unit Step: Vout over Time')
+grid on
+
+subplot(2,1,1)
+plot(time,vinval2)
+title('Unit Step: Vin over Time')
+grid on
+
+%Vout Frequency plots
+
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2/n;     % zero-centered power
+
+figure(2)
+plot(fshift,powershift)
+title('Vout: Unit Step F Spectrum')
+
+
+%Vin
+
+fvin=fft(vinval2);
+n=length(vinval2);
+
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2/n;     % zero-centered power
+
+figure(3)
+plot(fshift,powershift)
+title('Vin: Unit Step F Spectrum')
+
+%% 2. Sine Function
+
+vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+    
+    
+     for t=0:deltaT:1
+    
+         time(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutval(count)=Vj(6);
+         vinval2(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+    
+      
+     end
+     
+     figure(4)
+     subplot(2,1,2)
+     plot(time,voutval)
+     title('Sine Function: Vout over Time')
+     grid on
+     
+     subplot(2,1,1)
+     plot(time,vinval2)
+     title('Sine Function: Vin over Time')
+     grid on
+     
+%Vout Frequency plots
+  
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2 /n;     % zero-centered power
+
+figure(5)
+plot(fshift,powershift)
+title('Vout: Sine F Spectrum')
+
+%Vin
+
+fvin=fft(vinval2);
+n=length(vinval2);
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2/n;     % zero-centered power
+
+figure(6)
+plot(fshift,powershift)
+title('Vin: Sine F Spectrum')
+
+%% 3. Gaussian Function
+
+     vx=@(t) exp(-(1/2)*((t-0.06)/(0.03))^2);
+     Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+     voutval=zeros(1000,1);
+     vinval2=zeros(1000,1);
+     count=1;
+     time=zeros(1000,1);
+    
+     
+     for t=0:deltaT:1
+    
+         time(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutval(count)=Vj(6);
+         vinval2(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+         
+        
+     end
+     
+     figure(7)
+    
+     subplot(2,1,2)
+     plot(time,voutval)
+     title('Guassian Function: Vout over Time')
+     grid on
+     
+     subplot(2,1,1)
+     plot(time,vinval2)
+     title('Gaussian Function: Vin over Time')
+     grid on
+     
+%Vout Frequency plots
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+ fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+ powershift = abs(Y).^2/n;     % zero-centered power
+
+ figure(8)
+plot(fshift,powershift)
+title('Vout: Gaussian F Spectrum')
+
+
+%Vin
+
+fvin=fft(vinval2);
+n=length(vinval2);
+t=(0:n-1)*(fs/n);
+power = abs(fvin).^2 / n;
+ Y=fftshift(fvin);
+ fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+ powershift = abs(Y).^2/n;     % zero-centered power
+
+ figure(9)
+plot(fshift,powershift)
+title('Vin: Gaussian F Spectrum')      
+        
+
+%% 4. Sine Function (Small and Large Time Steps)
+
+% smaller time step first
+deltaT=0.001;
+
+A=C/(deltaT)+G;
+vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutvalsmall=zeros(1000,1);
+vinval2small=zeros(1000,1);
+count=1;
+timesmall=zeros(1000,1);
+    
+    
+     for t=0:deltaT:1
+    
+         timesmall(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutvalsmall(count)=Vj(6);
+         vinval2small(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+    
+      
+     end
+ 
+% larger time step
+
+deltaT=0.01;
+
+A=C/(deltaT)+G;
+
+vx=@(t) sin(2*pi*33 *t);
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutvallarge=zeros(100,1);
+vinval2large=zeros(100,1);
+count=1;
+timelarge=zeros(100,1);
+    
+    
+     for t=0:deltaT:1
+    
+         timelarge(count)=t;
+         F=[0 0 0 0 0 0 vx(t) 0];
+         Vj=inv(A)*(C*Vjm/deltaT + F');
+         voutvallarge(count)=Vj(6);
+         vinval2large(count)=Vj(1);
+         Vjm=Vj;
+         count=count+1;
+    
+      
+     end
+  figure(10)
+     subplot(2,1,2)
+     plot(timesmall,voutvalsmall)
+     title('Sine Function: Vout over Small Time')
+     grid on
+     
+     subplot(2,1,1)
+     plot(timelarge,voutvallarge)
+     title('Sine Function: Vin over Large Time')
+     grid on
+%% 5. Conclusion
+% The time domain response of the circuit was observed in this module of
+% the report. It can be observed in part 4 that the larger the time step
+% the more distorted the output waveform appears. Therefore a smaller time
+% step should be used for this analysis. 
+##### SOURCE END #####
+--></body></html>

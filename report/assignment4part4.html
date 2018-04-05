@@ -1,0 +1,390 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Assignment 4: Part 4: Non-Linear Circuit MNA Analysis</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-05"><meta name="DC.source" content="assignment4part4.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Assignment 4: Part 4: Non-Linear Circuit MNA Analysis</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">G, C, and J Matrix Construction</a></li><li><a href="#3">Sine Function Input Voltage Signal</a></li><li><a href="#4">Conclusion</a></li></ul></div><h2 id="1">Introduction</h2><pre class="codeinput"><span class="comment">% Firstly, I need to develop the jacobian matrix which will solve for the</span>
+<span class="comment">% nonlinear current controlled voltage generator. Once the jacobian matrix</span>
+<span class="comment">% is defined, the newton ralphson method will be used to solve for the</span>
+<span class="comment">% change in voltage at each iteration of the calculation. The  V vector</span>
+<span class="comment">% will be solved again where the output voltage will be estimated.</span>
+
+clc
+G1=1/1;
+C2=0.25;
+G2=0.5;
+L=0.2;
+G3=0.1;
+G4=100;
+G5=1/1000;
+ALPHA=1000;
+BETA=100e5;
+GAMMA=100e8;
+Vin=10;
+vx=-10;
+</pre><h2 id="2">G, C, and J Matrix Construction</h2><pre class="codeinput"><span class="comment">% X=[V1 Iin V2 V3 V4 V5 IL I4]</span>
+<span class="comment">% G=[-G1,1, G1, 0,0,0,0,0; ...</span>
+<span class="comment">%     G1,0, -G1-G2,0,0,0,-1,0;...</span>
+<span class="comment">%     0,0,0,-G3,0,0,1,0;...</span>
+<span class="comment">%     0,0,1,-1,0,0,0,0;...</span>
+<span class="comment">%     0,0,0,0,0,G4,-ALPHA*G4,1;...</span>
+<span class="comment">%     0,0,0,0,0,-G4-G5,ALPHA*G4,0;...</span>
+<span class="comment">%     1,0,0,0,0,0,0,0;</span>
+<span class="comment">%     0,0,0,0,1,0,-ALPHA,0];</span>
+
+<span class="comment">%X=[V1 Iin V2 V3 V4 V5 IL I4]</span>
+
+G=[-G1,1, G1, 0,0,0,0,0; <span class="keyword">...</span>
+    G1,0, -G1-G2,0,0,0,-1,0;<span class="keyword">...</span>
+    0,0,0,-G3,0,0,1,0;<span class="keyword">...</span>
+    0,0,1,-1,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,-G4,G4,0,1;<span class="keyword">...</span><span class="comment">% [0,0,0,0,0,0,G4,-G4*(-alpha*i3-beta*i3^2-gamma*i3^3),1]</span>
+    0,0,0,0,G4,-G4-G5,0,0;<span class="keyword">...</span><span class="comment">% [0,0,0,0,-G4-G5, G4*(-alpha*i3-beta*i3^2-gamma*i3^3),0]</span>
+    1,0,0,0,0,0,0,0;
+    0,0,0,0,1,0,0,0];<span class="comment">% [0,0,0,0,-alpha*i3-beta*i3^2-gamma*i3^3,0,0,0]</span>
+
+C = [-C2,0,C2,0,0,0,0,0;<span class="keyword">...</span>
+    C2,0,-C2,0,0,0,0,0;<span class="keyword">...</span><span class="comment">.</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,-L,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0];
+
+I3=0;
+J = [0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+    0,0,0,0,0,0, (-ALPHA - 2*BETA*I3 - 3*GAMMA*I3^2), 0];
+
+
+
+deltaT=0.001;
+V = [0; 0; 0; 0; 0; 0; 0; 0];
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+</pre><h2 id="3">Sine Function Input Voltage Signal</h2><pre class="codeinput">vx=@(t) sin(2*pi*33 *t);
+
+<span class="keyword">for</span> t=0:deltaT:1
+
+    Fvect=[0 0 0 0 0 0 vx(t) 0];
+
+    time(count)=t;
+
+    dvdf=C/deltaT + G - J;
+    countconvergence=0;
+    <span class="keyword">while</span>(countconvergence&lt;200)
+
+         I3= V(7); <span class="comment">%current through inductor</span>
+
+         J = [0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0,0,0;<span class="keyword">...</span>
+             0,0,0,0,0,0, (-ALPHA - 2*BETA*I3 - 3*GAMMA*I3^2), 0];
+          B = [ 0 0 0 0 0 0 0 (ALPHA*I3+BETA*I3^2+GAMMA*I3^3)];
+
+          f=(C/deltaT+G) * V - (C/deltaT)*Vjm - Fvect' - B';
+
+         H=C/deltaT + G - J;
+
+         dV = -inv(H) * f;
+
+         V=V+dV;
+
+         <span class="keyword">if</span>(max(abs(dV))&lt; 1e-3)
+             <span class="keyword">break</span>;
+         <span class="keyword">end</span>
+         countconvergence = countconvergence+1;
+     <span class="keyword">end</span>
+
+
+    voutval(count)=V(6);
+    vinval2(count)=V(1);
+    Vjm=V;
+    count=count+1;
+<span class="keyword">end</span>
+
+figure(1)
+subplot(2,1,2)
+plot(time,voutval)
+title(<span class="string">' Non-Linear Vout over Time (Sine Function)'</span>)
+grid <span class="string">on</span>
+
+subplot(2,1,1)
+plot(time,vinval2)
+title(<span class="string">' Non-Linear Vin over Time (Sine Function)'</span>)
+grid <span class="string">on</span>
+
+
+<span class="comment">%Vout Frequency plots</span>
+
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2 /n;     <span class="comment">% zero-centered power</span>
+
+figure(2)
+plot(fshift,powershift)
+title(<span class="string">' Vout Sine F Spectrum'</span>)
+
+<span class="comment">%Vin</span>
+
+fvin=fft(vinval2);
+n=length(vinval2);
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); <span class="comment">% zero-centered frequency range</span>
+powershift = abs(Y).^2/n;     <span class="comment">% zero-centered power</span>
+
+figure(3)
+plot(fshift,powershift)
+title(<span class="string">'Vin Sine F Spectrum'</span>)
+</pre><img vspace="5" hspace="5" src="assignment4part4_01.png" alt=""> <img vspace="5" hspace="5" src="assignment4part4_02.png" alt=""> <img vspace="5" hspace="5" src="assignment4part4_03.png" alt=""> <h2 id="4">Conclusion</h2><p>The time domain plot of the output waveform displays the non linear effects. The shape of the smooth sine input function is not maintained at the output.</p><p>The output waveform of the circuit contains additional harmonics on top of the sine function. The additional harmonic's frequencies (spectral lines) can be observed in the frequency domain using the fourier transform in figure 2.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Assignment 4: Part 4: Non-Linear Circuit MNA Analysis
+
+%% Introduction 
+
+% Firstly, I need to develop the jacobian matrix which will solve for the
+% nonlinear current controlled voltage generator. Once the jacobian matrix
+% is defined, the newton ralphson method will be used to solve for the
+% change in voltage at each iteration of the calculation. The  V vector
+% will be solved again where the output voltage will be estimated. 
+
+clc
+G1=1/1;
+C2=0.25;
+G2=0.5;
+L=0.2;
+G3=0.1;
+G4=100;
+G5=1/1000;
+ALPHA=1000;
+BETA=100e5;
+GAMMA=100e8;
+Vin=10;
+vx=-10;
+
+%% G, C, and J Matrix Construction
+
+
+% X=[V1 Iin V2 V3 V4 V5 IL I4]
+% G=[-G1,1, G1, 0,0,0,0,0; ...
+%     G1,0, -G1-G2,0,0,0,-1,0;...
+%     0,0,0,-G3,0,0,1,0;...
+%     0,0,1,-1,0,0,0,0;...
+%     0,0,0,0,0,G4,-ALPHA*G4,1;...
+%     0,0,0,0,0,-G4-G5,ALPHA*G4,0;...
+%     1,0,0,0,0,0,0,0;
+%     0,0,0,0,1,0,-ALPHA,0];
+
+%X=[V1 Iin V2 V3 V4 V5 IL I4]
+
+G=[-G1,1, G1, 0,0,0,0,0; ...
+    G1,0, -G1-G2,0,0,0,-1,0;...
+    0,0,0,-G3,0,0,1,0;...
+    0,0,1,-1,0,0,0,0;...
+    0,0,0,0,-G4,G4,0,1;...% [0,0,0,0,0,0,G4,-G4*(-alpha*i3-beta*i3^2-gamma*i3^3),1]
+    0,0,0,0,G4,-G4-G5,0,0;...% [0,0,0,0,-G4-G5, G4*(-alpha*i3-beta*i3^2-gamma*i3^3),0]
+    1,0,0,0,0,0,0,0;
+    0,0,0,0,1,0,0,0];% [0,0,0,0,-alpha*i3-beta*i3^2-gamma*i3^3,0,0,0]
+
+C = [-C2,0,C2,0,0,0,0,0;...
+    C2,0,-C2,0,0,0,0,0;....
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,-L,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0];
+
+I3=0;
+J = [0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0,0,0;...
+    0,0,0,0,0,0, (-ALPHA - 2*BETA*I3 - 3*GAMMA*I3^2), 0];
+
+
+
+deltaT=0.001;
+V = [0; 0; 0; 0; 0; 0; 0; 0];
+Vjm=[0; 0; 0; 0; 0; 0; 0; 0];
+voutval=zeros(1000,1);
+vinval2=zeros(1000,1);
+count=1;
+time=zeros(1000,1);
+
+%% Sine Function Input Voltage Signal 
+
+vx=@(t) sin(2*pi*33 *t);
+
+for t=0:deltaT:1
+    
+    Fvect=[0 0 0 0 0 0 vx(t) 0];
+    
+    time(count)=t;
+    
+    dvdf=C/deltaT + G - J; 
+    countconvergence=0;
+    while(countconvergence<200)
+          
+         I3= V(7); %current through inductor
+         
+         J = [0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0,0,0;...
+             0,0,0,0,0,0, (-ALPHA - 2*BETA*I3 - 3*GAMMA*I3^2), 0];
+          B = [ 0 0 0 0 0 0 0 (ALPHA*I3+BETA*I3^2+GAMMA*I3^3)];
+         
+          f=(C/deltaT+G) * V - (C/deltaT)*Vjm - Fvect' - B';
+      
+         H=C/deltaT + G - J;
+       
+         dV = -inv(H) * f;
+         
+         V=V+dV;
+        
+         if(max(abs(dV))< 1e-3)
+             break;
+         end
+         countconvergence = countconvergence+1;
+     end
+     
+     
+    voutval(count)=V(6);
+    vinval2(count)=V(1);
+    Vjm=V;
+    count=count+1;
+end
+
+figure(1)
+subplot(2,1,2)
+plot(time,voutval)
+title(' Non-Linear Vout over Time (Sine Function)')
+grid on
+
+subplot(2,1,1)
+plot(time,vinval2)
+title(' Non-Linear Vin over Time (Sine Function)')
+grid on
+
+
+%Vout Frequency plots
+  
+fs=1000;
+fvout=fft(voutval);
+n=length(voutval);
+Y=fftshift(fvout);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2 /n;     % zero-centered power
+
+figure(2)
+plot(fshift,powershift)
+title(' Vout Sine F Spectrum')
+
+%Vin
+
+fvin=fft(vinval2);
+n=length(vinval2);
+Y=fftshift(fvin);
+fshift = (-n/2:n/2-1)*(fs/n); % zero-centered frequency range
+powershift = abs(Y).^2/n;     % zero-centered power
+
+figure(3)
+plot(fshift,powershift)
+title('Vin Sine F Spectrum')
+%% Conclusion
+% The time domain plot of the output waveform displays the non linear
+% effects. The shape of the smooth sine input function is not maintained
+% at the output.
+%
+% The output waveform of the circuit contains additional harmonics on top
+% of the sine function. The additional harmonic's frequencies (spectral
+% lines) can be observed in the frequency domain using the fourier
+% transform in figure 2.
+##### SOURCE END #####
+--></body></html>
